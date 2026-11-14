@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asteria's Song · Earth Jukebox</title>
+
+  <!-- Fonts: Cinzel for the title, Alegreya for body text (both fall back to system serifs) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;700&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <img class="whale" src="assets/whale-light.webp" alt="" aria-hidden="true">
+
+  <!-- Browsers block audio until the user interacts with the page,
+       so this overlay's button is what unlocks Tone.js (hover alone can't). -->
+  <div id="start-overlay" class="start-overlay">
+    <div class="start-card">
+      <h1 class="start-title">Asteria's Song</h1>
+      <p class="start-text">
+        NASA satellites watch Earth every day. Here, what they see becomes sound.
+        Hover over a symbol on the map to hear it.
+      </p>
+      <button id="start-btn" class="start-btn" type="button">Turn the sound on</button>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <h1 class="site-title">Asteria's Song</h1>
+    <p class="site-subtitle">Earth Jukebox: hover over the map to hear our planet</p>
+  </header>
+
+  <main class="stage">
+    <!-- Map container: the world-map.png background lives here.
+         Markers are generated from the EVENTS array in script.js. -->
+    <div id="map" class="map" role="group" aria-label="World map with six Earth events"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Data sources: NASA Earth Observatory and NASA Earthdata. (by Nadine & Maram :3)</p>
+  </footer>
+
+  <!-- Tone.js (pinned version) from CDN, then our script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

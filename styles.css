@@ -1,0 +1,288 @@
+/* ==========================================================
+   Asteria's Song · Earth Jukebox
+   Night-sky page + parchment map + pixel-art markers
+   ========================================================== */
+
+/* ---------- Design tokens ---------- */
+@font-face {
+  font-family: "AsteriaLogo";
+  src: url("assets/fonts/AMORIA.otf") format("opentype");
+  /* for .ttf use: format("truetype")   for .otf use: format("opentype") */
+  font-display: swap;
+}
+:root {
+  --night:        #00064d;   /* page background */
+  --night-deep:   #6953d6;
+  --parchment:    #2d25a8da;   /* tooltip + map fallback */
+  --parchment-dk: #f4e3bf;
+  --ink:          #ffbcf4;   /* text on parchment */
+  --brass:        #f3d1f8;   /* borders / accents */
+  --star:         #e5d5eb;   /* text on night */
+
+  --icon-size: clamp(70px, 5.2vw, 56px);  /* scales with screen width */
+  --font-title: "Cinzel", "Trajan Pro", Georgia, serif;
+  --font-body:  "Alegreya", Georgia, "Times New Roman", serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--star);
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  /* soft night-sky gradient */
+  background:
+    radial-gradient(ellipse at 20% 0%, #26305a 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 100%, #1d2a4a 0%, transparent 50%),
+    var(--night);
+}
+
+/* ---------- Header / footer ---------- */
+.site-header {
+  text-align: center;
+  padding: 1.6rem 1rem 0.8rem;
+}
+
+.site-title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  letter-spacing: 0.04em;
+  color: #f3d1f8;
+}
+
+.site-subtitle {
+  margin: 0.3rem 0 0;
+  opacity: 0.85;
+}
+
+.site-footer {
+  margin-top: auto;
+  padding: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  text-align: center;
+}
+
+/* ---------- Map ---------- */
+.stage {
+  width: 100%;
+  padding: 0.5rem 1rem 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.map {
+  position: relative;               /* markers are positioned against this */
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9;             /* ratio */
+  border: 4px solid #f3d1f8;
+  border-radius: 6px;
+  box-shadow: 0 0 0 0px var(--night-deep), 0 18px 50px rgba(0, 0, 0, 0.55);
+
+  /* The map image sits on top of a parchment gradient, so the page
+     still looks fine if assets/world-map.png hasn't been added yet. */
+  background:
+    url("assets/world-map.png") center / 100% 100% no-repeat,
+    radial-gradient(ellipse at center, var(--parchment) 0%, var(--parchment-dk) 100%);
+}
+
+/* ---------- Markers (icon + tooltip live together) ---------- */
+/* The tooltip is a CHILD of the marker, so moving the mouse from the icon
+   onto the tooltip doesn't count as "leaving" – the link stays clickable. */
+.marker {
+  position: absolute;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  transform: translate(-50%, -50%);  /* centre the icon on its top/left point */
+  z-index: 1;
+}
+
+.marker.is-active { z-index: 10; }
+
+/* The pixel icon button */
+.icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 3px solid #f3d1f8;
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);   /* chunky pixel-style shadow */
+  transition: transform 0.15s ease;
+}
+
+.icon svg,
+.icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  shape-rendering: crispEdges;
+  image-rendering: pixelated;   /* keeps custom PNG icons sharp */
+}
+
+/* Hover: enlarge slightly */
+.marker:hover .icon,
+.marker.is-active .icon {
+  transform: scale(1.15);
+}
+
+.icon:focus-visible {
+  outline: 3px solid var(--star);
+  outline-offset: 3px;
+}
+
+/* ---------- Tooltip ---------- */
+.tooltip {
+  position: absolute;
+  top: calc(100% + 10px);          /* below the icon by default */
+  left: 50%;
+  width: min(250px, 60vw);
+  transform: translateX(-50%);
+  padding: 0.75rem 0.9rem;
+  color: var(--ink);
+  background: var(--parchment);
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: left;
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s;
+}
+
+/* Invisible bridge across the 10px gap so the hover doesn't drop */
+.tooltip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -14px;
+  height: 14px;
+}
+
+.marker.is-active .tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Position variants (set by script.js depending on where the icon sits) */
+.tooltip--above {
+  top: auto;
+  bottom: calc(100% + 10px);
+}
+.tooltip--above::before {
+  top: auto;
+  bottom: -14px;
+}
+.tooltip--left {            /* icon near right edge: tooltip grows leftwards */
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.tooltip--right {           /* icon near left edge: tooltip grows rightwards */
+  left: 0;
+  transform: none;
+}
+
+.tooltip-title {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+}
+
+.tooltip-desc { margin: 0 0 0.45rem; }
+
+.tooltip-sound {
+  margin: 0 0 0.5rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.tooltip-link {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tooltip-link:hover,
+.tooltip-link:focus-visible { background: var(--brass); }
+
+/* ---------- Start overlay ---------- */
+.start-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(11, 15, 29, 0.92);
+  transition: opacity 0.4s ease, visibility 0.4s;
+}
+.start-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.start-card {
+  max-width: 460px;
+  padding: 2rem;
+  text-align: center;
+  background: var(--parchment);
+  color: var(--ink);
+  border: 4px solid #f3d1f8;
+  border-radius: 6px;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+}
+
+.start-title {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-title);
+  font-size: 2rem;
+}
+.start-text { margin: 0 0 1.4rem; }
+
+.start-btn {
+  padding: 0.7rem 1.4rem;
+  font: 700 1.05rem var(--font-body);
+  color: var(--star);
+  background: var(--night);
+  border: 3px solid var(--brass);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+.start-btn:hover,
+.start-btn:focus-visible { background: #1f2a4d; }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 600px) {
+  .map { aspect-ratio: 4 / 3; }   /* a bit taller so icons have room */
+}
+
+/* ---------- Respect reduced-motion settings ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .icon, .tooltip, .start-overlay { transition: none; }
+}
+.whale {
+  position: absolute;
+  top: 0%;              /* height on the map, move it onto an ocean */
+  left: 2;
+  width: 60%;           /* the swim path spans the whole map width */
+  z-index: 0;            /* behind the icons */
+  pointer-events: none;/* never blocks hovering on icons */
+  opacity: 0.3;         /* subtle, not distracting */
+}
