@@ -37,10 +37,12 @@ body {
   font-size: 1.05rem;
   line-height: 1.55;
   /* soft night-sky gradient */
-  background:
-    radial-gradient(ellipse at 20% 0%, #26305a 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 100%, #1d2a4a 0%, transparent 50%),
-    var(--night);
+background:
+  radial-gradient(ellipse at 15% 10%, rgba(59, 184, 163, 0.35), transparent 50%),
+  radial-gradient(ellipse at 85% 20%, rgba(149, 57, 202, 0.35), transparent 55%),
+  radial-gradient(ellipse at 50% 100%, rgba(47, 127, 216, 0.30), transparent 60%),
+  #0b0f1d;
+background-attachment: fixed;
 }
 
 /* ---------- Header / footer ---------- */
@@ -285,4 +287,42 @@ body {
   z-index: 0;            /* behind the icons */
   pointer-events: none;/* never blocks hovering on icons */
   opacity: 0.3;         /* subtle, not distracting */
+}
+/* Title + speaker button on one row */
+.tooltip-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.tooltip-head .tooltip-title { margin: 0; }
+
+.tooltip-listen {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--ink);
+  background: var(--parchment-dk);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.tooltip-listen:hover,
+.tooltip-listen:focus-visible { background: var(--brass); }
+.tooltip-listen.is-playing { background: var(--ink); color: var(--parchment); }
+
+/* Animated star background (sits behind everything, including the whale) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;                         /* covers the whole screen */
+  z-index: -2;                      /* whale is -1, so it stays in front of the stars */
+  background: url("assets/star.gif") center / cover no-repeat;
+  mix-blend-mode: screen;           /* black parts of the GIF become see-through */
+  opacity: 0.6;                     /* lower it for subtler stars */
+  pointer-events: none;             /* never blocks hovering on icons */
 }

@@ -27,6 +27,7 @@ const EVENTS = [
     sound: "ocean",
     audioSrc: "assets/sound/ocean_new.mp3",
     soundLabel: "Flowing water: a rolling arpeggio over a soft wave wash",
+    descriptionAudio: "assets/audio/Ocean-Currents-des.wav",
   },
   {
     id: "forest-fires",
@@ -39,6 +40,7 @@ const EVENTS = [
     icon: "fire",
     sound: "fire",
     soundLabel: "Warm pulsing synth with random crackles",
+    descriptionAudio: "assets/audio/Forest-Fires-des.wav",
   },
   {
     id: "air-quality",
@@ -51,11 +53,12 @@ const EVENTS = [
     icon: "air",
     sound: "air",
     soundLabel: "Airy wind with a few drifting high notes",
+    descriptionAudio: "assets/audio/Air_Quality-des.wav",
   },
   {
     id: "aerosols",
     name: "Aerosols",
-    position: { top: 52, left: 50 },
+    position: { top: 52, left: 48 },
     iconSrc:"assets/aerosols.png",
     description:
       "Dust, smoke and sea salt hang in the air as tiny particles. Satellites follow where they travel and how thick they are.",
@@ -63,6 +66,7 @@ const EVENTS = [
     icon: "aerosols",
     sound: "aerosols",
     soundLabel: "Scattered chimes that appear at random, like drifting particles",
+    descriptionAudio: "assets/audio/Aerosols-des.wav",
   },
   {
     id: "night-lights",
@@ -75,6 +79,7 @@ const EVENTS = [
     icon: "night",
     sound: "night",
     soundLabel: "Sparkling high notes that climb and fall",
+    descriptionAudio: "assets/audio/Night-Lights-des.wav",
   },
   {
     id: "aurora",
@@ -87,6 +92,7 @@ const EVENTS = [
     icon: "aurora",
     sound: "aurora",
     soundLabel: "Slow, dreamy synth pad with changing chords",
+    descriptionAudio: "assets/audio/Aurora-des.wav",
   },
   {
     id: "lightning",
@@ -99,6 +105,7 @@ const EVENTS = [
     sound: "lightning",
     audioSrc: "assets/sound/lightning.wav",
     soundLabel: "recorded",
+    descriptionAudio: "assets/audio/Lightning-des.wav",
   },
   {
     id: "hurricanes",
@@ -111,6 +118,7 @@ const EVENTS = [
     sound: "hurricane",
     audioSrc: "assets/sound/04_ocean_hurricanes.mp3",
     soundLabel: "recorded",
+    descriptionAudio: "assets/audio/Hurricanes-des.wav",
   },
    {
     id: "NASA",
@@ -123,6 +131,20 @@ const EVENTS = [
     sound: "sonification",
     audioSrc: "assets/sound/hubble-sonification.mp4",
     soundLabel: "recorded",
+    descriptionAudio: "assets/audio/nasa-des.wav",
+  },
+  {
+    id: "Bahrain",
+    name: "Bahrain",
+    position: { top: 40, left: 60},
+    iconSrc: "assets/bahrain.png",
+    description:
+      "Bahrain experiences many natural events that often go unnoticed. From shifting skies to changes across land and sea, our island is always in motion. Click the link to explore a website that tracks natural events across our beautiful country.",
+    nasaLink: "https://worldnaturaldisasters.com/country/bahrain",
+    sound: "",
+    audioSrc: "assets/sound/bahrain.mp3",
+    soundLabel: "Our beautiful bahrain sea waves",
+    descriptionAudio: "assets/audio/bahrain-des.wav",
   },
 ];
 
@@ -469,7 +491,43 @@ function makeAurora(out) {
    4. UI
    ---------------------------------------------------------- */
 const mapEl = document.getElementById("map");
+/* Audio description player (for visually impaired users).
+   Keeps playing after the mouse leaves; stops when it ends, when the
+   button is pressed again, when another icon is activated, or on Escape. */
+const describer = {
+  el: null,
+  button: null,
 
+  setPlaying(button, on) {
+    button.classList.toggle("is-playing", on);
+    button.setAttribute("aria-pressed", String(on));
+    button.setAttribute(
+      "aria-label",
+      `${on ? "Stop" : "Listen to"} audio description of ${button.dataset.name}`
+    );
+  },
+
+  toggle(src, button) {
+    const wasThis = this.button === button;
+    this.stop();
+    if (wasThis) return;            // pressing again = stop
+    audio.stop();                   // silence the sonification first
+    this.el = new Audio(src);
+    this.button = button;
+    this.setPlaying(button, true);
+    this.el.addEventListener("ended", () => this.stop());
+    this.el.play().catch(() => this.stop());
+  },
+
+  stop() {
+    if (this.el) { this.el.pause(); this.el = null; }
+    if (this.button) { this.setPlaying(this.button, false); this.button = null; }
+  },
+};
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") describer.stop();
+});
 /** Build one marker (icon button + tooltip) for an event. */
 function createMarker(event) {
   const marker = document.createElement("div");
@@ -485,7 +543,18 @@ function createMarker(event) {
   marker.innerHTML = `
     <button class="icon" type="button" aria-label="${event.name}">${iconHTML}</button>
     <div class="tooltip" role="tooltip">
-      <h2 class="tooltip-title">${event.name}</h2>
+      <div class="tooltip-head">
+        <h2 class="tooltip-title">${event.name}</h2>
+        ${event.descriptionAudio ? `
+          <button class="tooltip-listen" type="button" aria-pressed="false"
+                  title="Listen to audio description"
+                  aria-label="Listen to audio description of ${event.name}"
+                  data-name="${event.name}">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z"/>
+            </svg>
+          </button>` : ""}
+      </div>
       <p class="tooltip-desc">${event.description}</p>
       <p class="tooltip-sound">♪ ${event.soundLabel}</p>
       <a class="tooltip-link" href="${event.nasaLink}" target="_blank" rel="noopener">
@@ -494,15 +563,20 @@ function createMarker(event) {
     </div>
   `;
 
-  // Keep the tooltip inside the map: flip it near edges
-  const tooltip = marker.querySelector(".tooltip");
-  if (event.position.left > 65) tooltip.classList.add("tooltip--left");
-  else if (event.position.left < 20) tooltip.classList.add("tooltip--right");
-  if (event.position.top > 60) tooltip.classList.add("tooltip--above");
+   // Speaker button (only exists if the event has a description file)
+  const listenBtn = marker.querySelector(".tooltip-listen");
+  if (listenBtn) {
+    listenBtn.addEventListener("click", () =>
+      describer.toggle(event.descriptionAudio, listenBtn)
+    );
+  }
 
   // --- Hover: show tooltip + play sound instantly ---
   const activate = () => {
+    if (marker.classList.contains("is-active")) return;   // already active, don't restart the sound
     marker.classList.add("is-active");
+    if (listenBtn && describer.button === listenBtn) return; // description playing: stay quiet
+    describer.stop();               // moving to a new icon stops any description
     audio.play(event.sound);
   };
   const deactivate = () => {
