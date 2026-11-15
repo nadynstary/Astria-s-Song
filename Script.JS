@@ -288,7 +288,7 @@ const audio = {
         stop()  { player.stop(); },
       };
     });
-    try { await Tone.loaded(); } catch (e) { console.warn("A sound file failed to load:", e); }
+       await Tone.loaded();
         this.ready = true;
   },
 
@@ -599,9 +599,21 @@ function createMarker(event) {
 EVENTS.forEach((event) => mapEl.appendChild(createMarker(event)));
 
 /* Start button: browsers only allow audio after a user gesture */
-const overlay = document.getElementById("start-overlay");
-document.getElementById("start-btn").addEventListener("click", async () => {
-  await Tone.start();   // unlocks the AudioContext
-  await audio.init();   // builds all instruments
-  overlay.classList.add("is-hidden");
-});
+/* Unlock audio on the visitor's first click, tap or key press.
+   (Browsers block sound before that, and hovering alone doesn't count.) */
+const unlockEvents = ["pointerdown", "keydown", "touchstart"];
+let audioStarting = false;
+
+async function unlockAudio() {
+  if (audioStarting || audio.ready) return;
+  audioStarting = true;
+  try {
+    await Tone.start();
+    await audio.init();
+    unlockEvents.forEach((t) => window.removeEventListener(t, unlockAudio));
+  } catch (err) {
+    console.error("Audio failed to start:", err);
+    audioStarting = false;   // the next click tries again
+  }
+}
+unlockEvents.forEach((t) => window.addEventListener(t, unlockAudio));
