@@ -288,8 +288,8 @@ const audio = {
         stop()  { player.stop(); },
       };
     });
-    await Tone.loaded();   
-    this.ready = true;
+    try { await Tone.loaded(); } catch (e) { console.warn("A sound file failed to load:", e); }
+        this.ready = true;
   },
 
   play(key) {
