@@ -2,6 +2,4 @@
 NASA space app challenge 2026, (The Earth Information Jukebox). 
 Project started on 9th of Nov 📅
 By Nadine and Maram 😼
-Main Features 
-Sonification algorithm
-and Visual display of the dataset on a map
+
